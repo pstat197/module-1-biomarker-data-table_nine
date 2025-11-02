@@ -126,3 +126,6 @@ results <- bio_test_pred %>%
   )
 
 print(results)
+
+# The results are showing the results of specificity and accuracy and the area under the curve is 71.5% which 
+# is pretty good. 
