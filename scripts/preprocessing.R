@@ -1,5 +1,6 @@
 library(tidyverse)
-
+# Question 2 - Remove outlier trimming and do EDA on the
+# resulting values
 
 # get names
 var_names <- read_csv('data/biomarker-raw.csv', 
@@ -14,9 +15,15 @@ var_names <- read_csv('data/biomarker-raw.csv',
 
 # function for trimming outliers (good idea??)
 trim <- function(x, .at){
+  obsList = c()
+  indices = which(abs(x) > 3)
+  obsList = c(obsList, indices)
+  print(obsList)
+  #print(x[abs(x) > .at])
   x[abs(x) > .at] <- sign(x[abs(x) > .at])*.at
   return(x)
 }
+
 
 # read in data
 biomarker_clean <- read_csv('data/biomarker-raw.csv', 
@@ -37,3 +44,5 @@ biomarker_clean <- read_csv('data/biomarker-raw.csv',
 # export as r binary
 save(list = 'biomarker_clean', 
      file = 'data/biomarker-clean.RData')
+
+yestrim = get(load('data/biomarker-clean.RData'))

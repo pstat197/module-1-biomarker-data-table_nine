@@ -43,6 +43,7 @@ proteins_s1 <- ttests_out %>%
   slice_min(p.adj, n = 10) %>%
   pull(protein)
 
+proteins_s1
 ## RANDOM FOREST
 ##################
 
@@ -69,6 +70,8 @@ proteins_s2 <- rf_out$importance %>%
   slice_max(MeanDecreaseGini, n = 10) %>%
   pull(protein)
 
+proteins_s2
+
 ## LOGISTIC REGRESSION
 #######################
 
@@ -85,6 +88,8 @@ set.seed(101422)
 biomarker_split <- biomarker_sstar %>%
   initial_split(prop = 0.8)
 
+biomarker_test = testing(biomarker_split)
+
 # fit logistic regression model to training set
 fit <- glm(class ~ ., 
            data = training(biomarker_split), 
@@ -95,9 +100,15 @@ class_metrics <- metric_set(sensitivity,
                             specificity, 
                             accuracy,
                             roc_auc)
+test_results = biomarker_test %>%
+  add_predictions(fit, type = 'response') %>% 
+  mutate(class = factor(class, labels = c("TD", "ASD")),
+         pred.group = factor(pred > 0.5, labels = c("TD", "ASD")))
 
-testing(biomarker_split) %>%
-  add_predictions(fit, type = 'response') %>%
-  class_metrics(estimate = factor(pred > 0.5),
-              truth = factor(class), pred,
-              event_level = 'second')
+test_results %>% 
+  class_metrics(
+    truth = class,
+    estimate = pred.group,
+    pred,
+    event_level = "second"
+  )
