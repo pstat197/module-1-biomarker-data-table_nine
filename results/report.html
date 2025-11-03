@@ -272,10 +272,143 @@ window.Quarto = {
 </div>
 <p>The summary statistics reveal that outliers were nearly equally distributed between diagnostic groups, with ASD subjects averaging 13.42 outliers and TD subjects averaging 17.82 outliers (Table 1). Both groups showed similar variability (standard deviations of 19.89 and 29.37, respectively), suggesting that outlier patterns are not systematically different between ASD and TD populations. However, the maximum values indicate that a small number of subjects in both groups exhibited extreme outlier patterns, with some subjects having over 100 outlying protein measurements.</p>
 <p>To visualize these patterns, we examined the distribution of outlier counts across subjects and identified those with extreme outlier profiles.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="report_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>The histogram shows outlier proteins distribution in subjects. In other words, it shows distribution of how many outlying proteins each subject has, comparing ASD vs TD groups.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The graph above shows most subjects had fewer than 50 outlying proteins, while a small subset exhibited extreme patterns with over 100 outliers. The substantial overlap between groups indicates that outlier presence is not associated with diagnostic status. Thus, outliers are a data quality issue, not an ASD-specific phenomenon. We can identify the extreme outliers and see whether there is any correlation between the groups and the outlying subjects</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Subjects with extreme outlier patterns (greater than or equal to 100 outlying proteins).</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Subject ID</th>
+<th style="text-align: right;">Number of Outliers</th>
+<th style="text-align: left;">Group</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">154</td>
+<td style="text-align: right;">157</td>
+<td style="text-align: left;">TD</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">108</td>
+<td style="text-align: right;">127</td>
+<td style="text-align: left;">TD</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">126</td>
+<td style="text-align: left;">ASD</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">121</td>
+<td style="text-align: right;">122</td>
+<td style="text-align: left;">TD</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">52</td>
+<td style="text-align: right;">121</td>
+<td style="text-align: left;">ASD</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">77</td>
+<td style="text-align: right;">114</td>
+<td style="text-align: left;">TD</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Removal of outlier trimming revealed that 152 of 154 subjects had at least one protein level exceeding 3 standard deviations. Outliers were distributed approximately equally between groups (75 ASD vs 77 TD). However, six subjects exhibited extreme outlier patterns with <span class="math inline">\(\ge\)</span> 100 outlying proteins each; four were TD and two were ASD, suggesting outlier trimming may have slightly greater impact on TD subjects.</p>
 </section>
 <section id="methodological-variations" class="level3">
 <h3 class="anchored" data-anchor-id="methodological-variations">Methodological variations</h3>
-<p>Task 3</p>
+<section id="assessing-the-results-on-testing-dataset" class="level4">
+<h4 class="anchored" data-anchor-id="assessing-the-results-on-testing-dataset">Assessing the Results on Testing Dataset</h4>
+<p>For experimenting with different methods we can first start with repeating the analysis on the training set. For that we have made an 80-20 split on the data.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Confusion matrix for the random forest</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">ASD</th>
+<th style="text-align: right;">TD</th>
+<th style="text-align: right;">class.error</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">ASD</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">0.3500000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">TD</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">46</td>
+<td style="text-align: right;">0.2580645</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The table above is a confusion matrix from the random forest. The Random Forest model achieved strong classification performance with out-of-bag error rates of 35% for ASD and 25.8% for TD subjects. The model correctly identified 29 of 55 ASD subjects and 21 of 67 TD subjects, with 21 false negatives and 16 false positives.</p>
+<p>Now we can move on to computing the importance score and performing the final logistic regression and evaluating the models on the test set. Then we can get the predictions and evaluate the model on the test set.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Evaluation of the test dataset.</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Metric</th>
+<th style="text-align: left;">Estimator</th>
+<th style="text-align: right;">Estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">sensitivity</td>
+<td style="text-align: left;">binary</td>
+<td style="text-align: right;">0.5625000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">specificity</td>
+<td style="text-align: left;">binary</td>
+<td style="text-align: right;">0.8125000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">accuracy</td>
+<td style="text-align: left;">binary</td>
+<td style="text-align: right;">0.6875000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">roc_auc</td>
+<td style="text-align: left;">binary</td>
+<td style="text-align: right;">0.7148438</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The table above shows the sensitivity of 0.56 and specificity of 0.81 and accuracy of 0.69 and area under the curve of 0.71. Overall this means this is a pretty good model for prediction. The model achieves moderate classification performance on the test set. The model demonstrated higher specificity (0.81) than sensitivity (0.56), indicating that it was better at correctly identifying typically developing (TD) individuals than at detecting those with ASD. While the model performs better than random guessing, the relatively lower sensitivity suggests room for improvement, particularly in capturing positive ASD cases. Further tuning or class rebalancing could help improve the model’s ability to generalize and detect ASD more reliably.</p>
+</section>
+<section id="larger-number-of-proteins" class="level4">
+<h4 class="anchored" data-anchor-id="larger-number-of-proteins">Larger Number of Proteins</h4>
+<p>In this section we will be performing all of the three selection methods, t-test, random forest, and correlation method, and pick more than 10 proteins for our analysis.</p>
+</section>
 </section>
 <section id="improved-classifier" class="level3">
 <h3 class="anchored" data-anchor-id="improved-classifier">Improved classifier</h3>
@@ -335,13 +468,6 @@ window.Quarto = {
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Count"</span>) <span class="sc">+</span></span>
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="report_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
 </div>
 <div class="cell">
 <details class="code-fold">
@@ -424,52 +550,332 @@ window.Quarto = {
 <span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(outlier_summary, <span class="at">caption =</span> <span class="st">"Summary statistics of outlier counts by diagnostic group."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Summary statistics of outlier counts by diagnostic group.</caption>
-<colgroup>
-<col style="width: 7%">
-<col style="width: 16%">
-<col style="width: 18%">
-<col style="width: 14%">
-<col style="width: 15%">
-<col style="width: 15%">
-<col style="width: 12%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">group</th>
-<th style="text-align: right;">mean_outliers</th>
-<th style="text-align: right;">median_outliers</th>
-<th style="text-align: right;">sd_outliers</th>
-<th style="text-align: right;">min_outliers</th>
-<th style="text-align: right;">max_outliers</th>
-<th style="text-align: right;">n_subjects</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">ASD</td>
-<td style="text-align: right;">13.42667</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">19.89307</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">126</td>
-<td style="text-align: right;">75</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">TD</td>
-<td style="text-align: right;">17.81818</td>
-<td style="text-align: right;">9</td>
-<td style="text-align: right;">29.36823</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">157</td>
-<td style="text-align: right;">77</td>
-</tr>
-</tbody>
-</table>
+</div>
+<p>Now we try to visulize the distribution of outlier counts across subject and identified those with extreme outlier profiles.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Histogram comparing groups</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(outlier_counts_df, <span class="fu">aes</span>(<span class="at">x =</span> n_outliers, <span class="at">fill =</span> group)) <span class="sc">+</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins =</span> <span class="dv">30</span>, <span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">position =</span> <span class="st">"identity"</span>) <span class="sc">+</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Outlier Counts per Subject"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Number of Outlying Proteins"</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Number of Subjects"</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">"Group"</span>) <span class="sc">+</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"ASD"</span> <span class="ot">=</span> <span class="st">"pink"</span>, <span class="st">"TD"</span> <span class="ot">=</span> <span class="st">"skyblue"</span>)) <span class="sc">+</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>The code below shows the table of extreme outliers</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Identify extreme outlier subjects</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>extreme_outliers <span class="ot">&lt;-</span> outlier_counts_df <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(n_outliers <span class="sc">&gt;=</span> <span class="dv">100</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(n_outliers))</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(extreme_outliers, </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Subjects with extreme outlier patterns (greater than or equal to 100 outlying proteins)."</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Subject ID"</span>, <span class="st">"Number of Outliers"</span>, <span class="st">"Group"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="experimenting-with-methodological-variations" class="level3">
+<h3 class="anchored" data-anchor-id="experimenting-with-methodological-variations">Experimenting with Methodological Variations</h3>
+<section id="training-and-testing-split-and-analysis" class="level4">
+<h4 class="anchored" data-anchor-id="training-and-testing-split-and-analysis">Training and Testing Split and Analysis</h4>
+<p>To repeat the analysis and set training data and testing data aside we use the training and testing split of 80-20. Note, that these are done on the preprocessed data used in class where the outliers are trimmed and <span class="math inline">\(\log\)</span> transformation has been performed.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(infer)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelr)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(yardstick)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">101422</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"../data/biomarker-clean.RData"</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Splitting the dataset</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>data_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(biomarker_clean, <span class="at">prop =</span> <span class="fl">0.8</span>, <span class="at">strata =</span> group)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>bio_train <span class="ot">&lt;-</span> <span class="fu">training</span>(data_split)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>bio_test <span class="ot">&lt;-</span> <span class="fu">testing</span>(data_split)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Selection procedure on the training set</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="do">## MULTIPLE </span><span class="al">TESTING</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="do">####################</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co"># function to compute tests</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>test_fn <span class="ot">&lt;-</span> <span class="cf">function</span>(.df){</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">t_test</span>(.df, </span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">formula =</span> level <span class="sc">~</span> group,</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">order =</span> <span class="fu">c</span>(<span class="st">'ASD'</span>, <span class="st">'TD'</span>),</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>         <span class="at">alternative =</span> <span class="st">'two-sided'</span>,</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>         <span class="at">var.equal =</span> F)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>ttests_out <span class="ot">&lt;-</span> bio_train <span class="sc">%&gt;%</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="co"># drop ADOS score</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>ados) <span class="sc">%&gt;%</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>  <span class="co"># arrange in long format</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>group, </span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">'protein'</span>, </span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">'level'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  <span class="co"># nest by protein</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>(<span class="at">data =</span> <span class="fu">c</span>(level, group)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>  <span class="co"># compute t tests</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ttest =</span> <span class="fu">map</span>(data, test_fn)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(ttest) <span class="sc">%&gt;%</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sort by p-value</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(p_value) <span class="sc">%&gt;%</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>  <span class="co"># multiple testing correction</span></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">m =</span> <span class="fu">n</span>(),</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>         <span class="at">hm =</span> <span class="fu">log</span>(m) <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>m) <span class="sc">-</span> <span class="fu">digamma</span>(<span class="dv">1</span>),</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>         <span class="at">rank =</span> <span class="fu">row_number</span>(),</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>         <span class="at">p.adj =</span> m<span class="sc">*</span>hm<span class="sc">*</span>p_value<span class="sc">/</span>rank)</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a><span class="co"># select significant proteins</span></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>proteins_s1 <span class="ot">&lt;-</span> ttests_out <span class="sc">%&gt;%</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_min</span>(p.adj, <span class="at">n =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(protein)</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="do">## RANDOM FOREST</span></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="do">##################</span></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a><span class="co"># store predictors and response separately</span></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>predictors <span class="ot">&lt;-</span> bio_train <span class="sc">%&gt;%</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(group, ados))</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> bio_train <span class="sc">%&gt;%</span> <span class="fu">pull</span>(group) <span class="sc">%&gt;%</span> <span class="fu">factor</span>()</span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a><span class="co"># fit RF</span></span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">101422</span>)</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>rf_out <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(<span class="at">x =</span> predictors, </span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>                       <span class="at">y =</span> response, </span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>                       <span class="at">ntree =</span> <span class="dv">1000</span>, </span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>                       <span class="at">importance =</span> T)</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="co"># check errors</span></span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>rf_out_confusion <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(rf_out<span class="sc">$</span>confusion)</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(rf_out_confusion, <span class="at">caption =</span> <span class="st">"Confusion matrix for the random forest"</span>)</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="co"># compute importance scores</span></span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>proteins_s2 <span class="ot">&lt;-</span> rf_out<span class="sc">$</span>importance <span class="sc">%&gt;%</span> </span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">protein =</span> <span class="fu">rownames</span>(rf_out<span class="sc">$</span>importance)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(MeanDecreaseGini, <span class="at">n =</span> <span class="dv">10</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(protein)</span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a><span class="do">## LOGISTIC REGRESSION</span></span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a><span class="do">#######################</span></span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a><span class="co"># select subset of interest</span></span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>proteins_sstar <span class="ot">&lt;-</span> <span class="fu">intersect</span>(proteins_s1, proteins_s2)</span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>biomarker_sstar <span class="ot">&lt;-</span> bio_train <span class="sc">%&gt;%</span></span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(group, <span class="fu">any_of</span>(proteins_sstar)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">class =</span> (group <span class="sc">==</span> <span class="st">'ASD'</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>group)</span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a><span class="co"># fit logistic regression model to training set</span></span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(class <span class="sc">~</span> ., </span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> biomarker_sstar, </span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">'binomial'</span>)</span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a><span class="co"># evaluate errors on test set</span></span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>bio_test_sstar <span class="ot">&lt;-</span> bio_test <span class="sc">%&gt;%</span></span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(group, <span class="fu">any_of</span>(proteins_sstar)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">class =</span> <span class="fu">if_else</span>(group <span class="sc">==</span> <span class="st">"ASD"</span>, <span class="st">"ASD"</span>, <span class="st">"TD"</span>)) <span class="sc">%&gt;%</span>  <span class="co"># use character labels</span></span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>group)</span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a>class_metrics <span class="ot">&lt;-</span> <span class="fu">metric_set</span>(sensitivity, specificity, accuracy, roc_auc)</span>
+<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a><span class="co"># Get predictions</span></span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a>bio_test_pred <span class="ot">&lt;-</span> bio_test_sstar <span class="sc">%&gt;%</span></span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_predictions</span>(fit, <span class="at">type =</span> <span class="st">"response"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">prob =</span> pred) <span class="sc">%&gt;%</span>   <span class="co"># rename the prediction column</span></span>
+<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a>    <span class="at">pred_class =</span> <span class="fu">if_else</span>(prob <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="st">"ASD"</span>, <span class="st">"TD"</span>),</span>
+<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a>    <span class="at">class =</span> <span class="fu">factor</span>(class, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"TD"</span>, <span class="st">"ASD"</span>)),</span>
+<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a>    <span class="at">pred_class =</span> <span class="fu">factor</span>(pred_class, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"TD"</span>, <span class="st">"ASD"</span>))</span>
+<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a><span class="co"># Evaluate performance</span></span>
+<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> bio_test_pred <span class="sc">%&gt;%</span></span>
+<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a>  <span class="fu">class_metrics</span>(</span>
+<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a>    <span class="at">truth =</span> class,</span>
+<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a>    <span class="at">estimate =</span> pred_class,</span>
+<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a>    prob,</span>
+<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a>    <span class="at">event_level =</span> <span class="st">"second"</span></span>
+<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(results, <span class="at">caption =</span> <span class="st">"Evaluation of the test dataset."</span>,</span>
+<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a>      <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Metric"</span>, <span class="st">"Estimator"</span>, <span class="st">"Estimate"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="larger-than-10-proteins" class="level4">
+<h4 class="anchored" data-anchor-id="larger-than-10-proteins">Larger than 10 proteins</h4>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(infer)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(randomForest)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelr)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(yardstick)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="do">## MULTIPLE </span><span class="al">TESTING</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="do">####################</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># function to compute tests</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>test_fn <span class="ot">&lt;-</span> <span class="cf">function</span>(.df){</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">t_test</span>(.df, </span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>         <span class="at">formula =</span> level <span class="sc">~</span> group,</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>         <span class="at">order =</span> <span class="fu">c</span>(<span class="st">'ASD'</span>, <span class="st">'TD'</span>),</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>         <span class="at">alternative =</span> <span class="st">'two-sided'</span>,</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">var.equal =</span> F)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>ttests_out <span class="ot">&lt;-</span> biomarker_clean <span class="sc">%&gt;%</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># drop ADOS score</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>ados) <span class="sc">%&gt;%</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># arrange in long format</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>group, </span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">'protein'</span>, </span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">'level'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  <span class="co"># nest by protein</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">nest</span>(<span class="at">data =</span> <span class="fu">c</span>(level, group)) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># compute t tests</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ttest =</span> <span class="fu">map</span>(data, test_fn)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(ttest) <span class="sc">%&gt;%</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sort by p-value</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(p_value) <span class="sc">%&gt;%</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>  <span class="co"># multiple testing correction</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">m =</span> <span class="fu">n</span>(),</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>         <span class="at">hm =</span> <span class="fu">log</span>(m) <span class="sc">+</span> <span class="dv">1</span><span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>m) <span class="sc">-</span> <span class="fu">digamma</span>(<span class="dv">1</span>),</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>         <span class="at">rank =</span> <span class="fu">row_number</span>(),</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>         <span class="at">p.adj =</span> m<span class="sc">*</span>hm<span class="sc">*</span>p_value<span class="sc">/</span>rank)</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a><span class="co"># select significant proteins</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>proteins_s1 <span class="ot">&lt;-</span> ttests_out <span class="sc">%&gt;%</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_min</span>(p.adj, <span class="at">n =</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(protein)</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>proteins_s1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "DERM"            "RELT"            "Calcineurin"     "C1QR1"          
+ [5] "MRC2"            "IgD"             "CXCL16, soluble" "PTN"            
+ [9] "FSTL1"           "Cadherin-5"      "MAPK2"           "TGF-b R III"    
+[13] "DAF"             "MMP-2"           "gp130, soluble"  "Notch 1"        
+[17] "MIA"             "ALCAM"           "MATN2"           "ROR1"           </code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="do">## RANDOM FOREST</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="do">##################</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># store predictors and response separately</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>predictors <span class="ot">&lt;-</span> biomarker_clean <span class="sc">%&gt;%</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(group, ados))</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>response <span class="ot">&lt;-</span> biomarker_clean <span class="sc">%&gt;%</span> <span class="fu">pull</span>(group) <span class="sc">%&gt;%</span> <span class="fu">factor</span>()</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co"># fit RF</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">101422</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>rf_out <span class="ot">&lt;-</span> <span class="fu">randomForest</span>(<span class="at">x =</span> predictors, </span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>                       <span class="at">y =</span> response, </span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>                       <span class="at">ntree =</span> <span class="dv">1000</span>, </span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>                       <span class="at">importance =</span> T)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>rf_out<span class="sc">$</span>confusion</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>    ASD TD class.error
+ASD  49 27   0.3552632
+TD   21 57   0.2692308</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute importance scores</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>proteins_s2 <span class="ot">&lt;-</span> rf_out<span class="sc">$</span>importance <span class="sc">%&gt;%</span> </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">protein =</span> <span class="fu">rownames</span>(rf_out<span class="sc">$</span>importance)) <span class="sc">%&gt;%</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(MeanDecreaseGini, <span class="at">n =</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(protein)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>proteins_s2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "DERM"                   "IgD"                    "MAPK14"                
+ [4] "RELT"                   "eIF-4H"                 "TSP4"                  
+ [7] "MRC2"                   "ALCAM"                  "FSTL3"                 
+[10] "Cadherin-5"             "SOST"                   "Notch 1"               
+[13] "ERBB1"                  "PTN"                    "ILT-4"                 
+[16] "M2-PK"                  "Epithelial cell kinase" "FSTL1"                 
+[19] "RET"                    "MMP-2"                 </code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="do">## LOGISTIC REGRESSION</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="do">#######################</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># select subset of interest</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>proteins_sstar <span class="ot">&lt;-</span> <span class="fu">intersect</span>(proteins_s1, proteins_s2)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>biomarker_sstar <span class="ot">&lt;-</span> biomarker_clean <span class="sc">%&gt;%</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(group, <span class="fu">any_of</span>(proteins_sstar)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">class =</span> (group <span class="sc">==</span> <span class="st">'ASD'</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>group)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co"># partition into training and test set</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">101422</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>biomarker_split <span class="ot">&lt;-</span> biomarker_sstar <span class="sc">%&gt;%</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">initial_split</span>(<span class="at">prop =</span> <span class="fl">0.8</span>)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Created test set</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>biomarker_test <span class="ot">=</span> <span class="fu">testing</span>(biomarker_split)</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="co"># fit logistic regression model to training set</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(class <span class="sc">~</span> ., </span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> <span class="fu">training</span>(biomarker_split), </span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">'binomial'</span>)</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a><span class="co"># evaluate errors on test set</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>class_metrics <span class="ot">&lt;-</span> <span class="fu">metric_set</span>(sensitivity, </span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>                            specificity, </span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>                            accuracy,</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>                            roc_auc)</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>test_results <span class="ot">=</span> biomarker_test <span class="sc">%&gt;%</span></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_predictions</span>(fit, <span class="at">type =</span> <span class="st">'response'</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">class =</span> <span class="fu">factor</span>(class, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"TD"</span>, <span class="st">"ASD"</span>)),</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>         <span class="at">pred.group =</span> <span class="fu">factor</span>(pred <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"TD"</span>, <span class="st">"ASD"</span>)))</span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>test_results <span class="sc">%&gt;%</span> </span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">class_metrics</span>(</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">truth =</span> class,</span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">estimate =</span> pred.group,</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>    pred,</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">event_level =</span> <span class="st">"second"</span></span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 3
+  .metric     .estimator .estimate
+  &lt;chr&gt;       &lt;chr&gt;          &lt;dbl&gt;
+1 sensitivity binary         0.75 
+2 specificity binary         0.867
+3 accuracy    binary         0.806
+4 roc_auc     binary         0.892</code></pre>
 </div>
 </div>
+</section>
 </section>
 </section>
 
