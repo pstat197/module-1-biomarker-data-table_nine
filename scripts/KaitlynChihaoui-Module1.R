@@ -137,9 +137,13 @@ ridge_selected_coef
 
 ## Our in-class analysis yielded a classification accuracy of 0.839 using logistic regression, while our lasso regularization yielded a simpler panel of 6 
 ## proteins and a classification accuracy of 0.871, and our alternative method of ridge regression yielded a panel of 11 proteins at a classification 
-## accuracy of 0.903.
+## accuracy of 0.903. Lasso regularization gave us a comparable (within 3.2%) classification accuracy, while the ridge regression gave us a much higher (by 6.4%)
+## classification accuracy.
 
 ## The selected proteins from the in-class analysis were: "DERM", "RELT", "Calcineurin", "IgD", "PTN", "FSTL1", "MAPK2", "TGF-b R III", "Notch 1", "ALCAM", 
 ## and "MATN2".  
 ## The selected proteins from the lasso panel were: DERM, Calcineurin, IgD, PTN, FSTL1, and MAPK2.
 ## The selected proteins from the ridge panel were: DERM, RELT, Calcineurin, IgD, PTN, FSTL1, MAPK2, TGF-b R III, Notch 1, ALCAM, and MATN2.
+
+## Thus, the most selected proteins were the same between our in-class analysis and our ridge regression, but lasso only retained DERM, Calcineurin, IgD, 
+## PTN, FSTL1, and MAPK2 from that subset.
