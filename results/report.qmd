@@ -16,27 +16,21 @@ execute:
   cache: true
 ---
 
-Use this as a template. Keep the headers and remove all other text. In all, your report can be quite short. When it is complete, render and then push changes to your team repository.
-
-
 ## Abstract
 
 This report evaluates the robustness of proteomic biomarker discovery for autism spectrum disorder (ASD) by replicating and extending the analysis of Hewitson et al. (2021). We examined how preprocessing decisions, outlier handling, and variable selection strategies affect classifier performance using multiple testing, random forest, and logistic regression approaches. Analysis of raw protein distributions revealed extreme right-skewness justifying log transformation. Outlier analysis without trimming showed 152 of 154 subjects had at least one protein exceeding 3 standard deviations, distributed equally between ASD ($n=75$) and TD ($n=77$) groups, though six subjects (4 TD, 2 ASD) exhibited extreme patterns with $\ge 100$ outlying proteins. Methodological variations including train-test splitting and expanded feature sets (20 vs 10 proteins) decreased sensitivity from 0.875 to 0.75 but improved specificity $(0.800 \rightarrow 0.867)$. Using regularization methods, we developed both a simpler 4-protein panel via LASSO and an improved 5-protein panel via Ridge regression, demonstrating that comparable or improved discrimination can be achieved with fewer biomarkers than the original 9-protein panel. These findings underscore the importance of rigorous validation strategies in biomarker discovery pipelines.
 
 ## Dataset
 
-Write a brief data description, including: how data were obtained; sample characteristics; variables measured; and data preprocessing. This can be largely based on the source paper and should not exceed 1-2 paragraphs.
+Data for this analysis were obtained from Hewitson et al. (2021), who conducted a proteomic analysis of serum samples to identify early biological markers for autism spectrum disorder (ASD). The study enrolled 154 male pediatric subjects aged 18 months to 8 years: 76 boys with ASD (mean age 5.6 ± 1.7 years) and 78 typically developing (TD) boys (mean age 5.7 ± 2.0 years) and the serum samples were obtained via a fasting blood draw. All ASD subjects were assessed using the Autism Diagnostic Observation Schedule (ADOS) and Autism Diagnostic Interview-Revised (ADI-R), with ADOS total scores providing a continuous measure of symptom severity. A total of 1,317 proteins were initially measured from each sample, however 192 proteins failed quality control so at the end 1,125 proteins were analyzed.
 
-Data for this analysis were obtained from Hewitson et al. (2021), who conducted a proteomic analysis of serum samples to identify early biological markers for autism spectrum disorder (ASD). The study enrolled 154 male pediatric subjects aged 18 months to 8 years: 76 boys with ASD (mean age 5.6 ± 1.7 years) and 78 typically developing (TD) boys (mean age 5.7 ± 2.0 years) and the serum samples were obtained via a fasting blood draw. All ASD subjects were assessed using the Autism Diagnostic Observation Schedule (ADOS) and Autism Diagnostic Interview-Revised (ADI-R), with ADOS total scores providing a continuous measure of symptom severity. A total of 1,317 proteins were initially measured from each sample, however 192 proteins failed quality control so at the end 1,125 proteins were analyzed. 
-
-Initially, the data was normalized by applying the $\log$ transformation. Following this, the data was centered and scaled, this also helped to address the outliers. Any z-transformed values less that $-3$ or greater than $3$ were clipped away. This report evaluates the impact of clipped the outliers by including them and tryin to classify the subjects. This preprocessing ensured the data were standardized before subsequent computational methods were deployed such as the t-test, random forest, and logistic regression. 
-
+Initially, the data was normalized by applying the $\log$ transformation. Following this, the data was centered and scaled, this also helped to address the outliers. Any z-transformed values less that $-3$ or greater than $3$ were clipped away. This report evaluates the impact of clipped the outliers by including them and tryin to classify the subjects. This preprocessing ensured the data were standardized before subsequent computational methods were deployed such as the t-test, random forest, and logistic regression.
 
 ## Summary of published analysis
 
-Hewitson et al. (2021) employed a multi-method approach combining statistical testing, machine learning, and correlation analysis to identify a biomarker panel for ASD. Three independent selection methods were used to identify the top-10 most predictive proteins from 1,125 candidates. First, t-tests were performed to identify proteins with significantly different serum levels between ASD and TD groups, selecting the 10 proteins with the lowest p-values. Second, a random forest (RF) model was trained 1,000 times, and the 10 proteins with the highest averaged MeanDecreaseGini importance scores were selected. Third, correlation analysis identified the 10 proteins most strongly associated with ADOS total scores, which measure ASD symptom severity. 
+Hewitson et al. (2021) employed a multi-method approach combining statistical testing, machine learning, and correlation analysis to identify a biomarker panel for ASD. Three independent selection methods were used to identify the top-10 most predictive proteins from 1,125 candidates. First, t-tests were performed to identify proteins with significantly different serum levels between ASD and TD groups, selecting the 10 proteins with the lowest p-values. Second, a random forest (RF) model was trained 1,000 times, and the 10 proteins with the highest averaged MeanDecreaseGini importance scores were selected. Third, correlation analysis identified the 10 proteins most strongly associated with ADOS total scores, which measure ASD symptom severity.
 
-Note, the correlation analysis between the protein had some complication which resulted in redaction of this paper. 
+Note, the correlation analysis between the protein had some complication which resulted in redaction of this paper.
 
 The final biomarker panel was constructed by first identifying the intersection of these three top-10 protein lists, yielding 5 "core" proteins common to all methods: MAPK14, IgD, DERM, EPHB2, and suPAR. To optimize predictive performance, each of the remaining 13 proteins from the three methods was evaluated for additive predictive power using logistic regression. Four additional proteins (ROR1, GI24, eIF-4H, and ARSB) improved the area under the curve (AUC) when added to the core set. The final 9-protein panel achieved AUC = $0.860 \pm 0.064$, with sensitivity = $0.833 \pm 0.118$ and specificity = $0.846 \pm 0.118$, evaluated through 1,000 iterations of 80/20 train-test splits. Follow the figure below for a clearer roadmap.
 
@@ -77,11 +71,11 @@ flowchart TD
 
 ## Findings
 
-Summarize your findings here. I've included some subheaders in a way that seems natural to me; you can structure this section however you like.
+In this section we will be justifying the preprocessing steps, impact of outliers, and carry a few experiments to see whether we can improve the model accuracy. 
 
 ### Justifying Preprocessing
 
-To assess the impact of preprocessing and outliers it is important to know why the choices were made in the study. To justify the log transformation we must look at the distribution of the samples of raw values. 
+To assess the impact of preprocessing and outliers it is important to know why the choices were made in the study. To justify the log transformation we must look at the distribution of the samples of raw values.
 
 ```{r, fig.align='center', fig.cap="The figure shows a right-skewed distribution."}
 # load any other packages and read data here
@@ -123,11 +117,12 @@ biomarker_raw %>%
        y = "Count") +
   theme_bw()
 ```
-Raw protein levels exhibited extreme right-skewness with values spanning several orders of magnitude. $\log$ transformation was applied to stabilize variance and normalize distributions, making them more suitable for parametric statistical methods such as t-tests and logistic regression. This transformation is standard in proteomic analyses where protein abundances naturally follow log-normal distributions due to multiplicative biological processes. Thus, using the log-transformation on the protein levels educes skewness to make the distribution approximately normal and stabilizes variance, helping the data to meet model assumptions. 
+
+Raw protein levels exhibited extreme right-skewness with values spanning several orders of magnitude. $\log$ transformation was applied to stabilize variance and normalize distributions, making them more suitable for parametric statistical methods such as t-tests and logistic regression. This transformation is standard in proteomic analyses where protein abundances naturally follow log-normal distributions due to multiplicative biological processes. Thus, using the log-transformation on the protein levels educes skewness to make the distribution approximately normal and stabilizes variance, helping the data to meet model assumptions.
 
 ### Impact of Outliers
 
-To see the impact of outliers we must identify the outliers and see whether we can infer anything about the subjects that are classified as outliers and comment on those. For the code to remove the trim refer to the Appendix. First let's figure out the outliers and see whether there is any similarities between the outliers by looking at their summary statistics. 
+To see the impact of outliers we must identify the outliers and see whether we can infer anything about the subjects that are classified as outliers and comment on those. For the code to remove the trim refer to the Appendix. First let's figure out the outliers and see whether there is any similarities between the outliers by looking at their summary statistics.
 
 ```{r}
 load("../data/biomarker-notrim.RData")
@@ -181,6 +176,7 @@ outlier_summary <- outlier_counts_df %>%
 
 kable(outlier_summary, caption = "Summary statistics of outlier counts by diagnostic group.")
 ```
+
 The summary statistics reveal that outliers were nearly equally distributed between diagnostic groups, with ASD subjects averaging 13.42 outliers and TD subjects averaging 17.82 outliers (Table 1). Both groups showed similar variability (standard deviations of 19.89 and 29.37, respectively), suggesting that outlier patterns are not systematically different between ASD and TD populations. However, the maximum values indicate that a small number of subjects in both groups exhibited extreme outlier patterns, with some subjects having over 100 outlying protein measurements.
 
 To visualize these patterns, we examined the distribution of outlier counts across subjects and identified those with extreme outlier profiles.
@@ -216,7 +212,7 @@ Removal of outlier trimming revealed that 152 of 154 subjects had at least one p
 
 #### Assessing the Results on Testing Dataset
 
-For experimenting with different methods we can first start with repeating the analysis on the training set. For that we have made an 80-20 split on the data. 
+For experimenting with different methods we can first start with repeating the analysis on the training set. For that we have made an 80-20 split on the data.
 
 ```{r, error=FALSE}
 library(tidyverse)
@@ -293,7 +289,7 @@ rf_out_confusion <- as.data.frame(rf_out$confusion)
 kable(rf_out_confusion, caption = "Confusion matrix for the random forest")
 ```
 
-The table above is a confusion matrix from the random forest. The Random Forest model achieved strong classification performance with out-of-bag error rates of 35% for ASD and 25.8% for TD subjects. The model correctly identified 29 of 55 ASD subjects and 21 of 67 TD subjects, with 21 false negatives and 16 false positives. 
+The table above is a confusion matrix from the random forest. The Random Forest model achieved strong classification performance with out-of-bag error rates of 35% for ASD and 25.8% for TD subjects. The model correctly identified 29 of 55 ASD subjects and 21 of 67 TD subjects, with 21 false negatives and 16 false positives.
 
 Now we can move on to computing the importance score and performing the final logistic regression and evaluating the models on the test set. Then we can get the predictions and evaluate the model on the test set.
 
@@ -354,9 +350,9 @@ kable(results, caption = "Evaluation of the test dataset.",
 
 The table above shows the sensitivity of 0.56 and specificity of 0.81 and accuracy of 0.69 and area under the curve of 0.71. Overall this means this is a pretty good model for prediction. The model achieves moderate classification performance on the test set. The model demonstrated higher specificity (0.81) than sensitivity (0.56), indicating that it was better at correctly identifying typically developing (TD) individuals than at detecting those with ASD. While the model performs better than random guessing, the relatively lower sensitivity suggests room for improvement, particularly in capturing positive ASD cases. Further tuning or class rebalancing could help improve the model’s ability to generalize and detect ASD more reliably.
 
-#### Larger Number of Proteins 
+#### Larger Number of Proteins
 
-In this section we will be performing all of the three selection methods, t-test, random forest, and correlation method, and pick more than 10 proteins for our analysis. For our purposes we increase the proteins from 10 to 20. 
+In this section we will be performing all of the three selection methods, t-test, random forest, and correlation method, and pick more than 10 proteins for our analysis. For our purposes we increase the proteins from 10 to 20.
 
 ```{r}
 library(infer)
@@ -408,7 +404,7 @@ kable(proteins_s1_df, caption = "20 proteins selected after the t test",
       col.names = c("Proteins"))
 ```
 
-The table above shows 20 proteins selected after performing the t test. Now we perform the random forest and select 20 proteins instead of 10. Refer to the appendix for the code, note that all of the code of this section is in one chunk. 
+The table above shows 20 proteins selected after performing the t test. Now we perform the random forest and select 20 proteins instead of 10. Refer to the appendix for the code, note that all of the code of this section is in one chunk.
 
 ```{r}
 ## RANDOM FOREST
@@ -444,7 +440,7 @@ kable(proteins_s2_df, caption = "20 selected proteins after performing random fo
       col.names = c("Proteins"))
 ```
 
-The first table above shows the confusion matrix of the random forest when we set $n=20$ for the number of proteins to pick up. The Random Forest model achieved strong classification performance with out-of-bag error rates of 35% for ASD and 26.9% for TD subjects. The model correctly identified 59 of 70 ASD subjects and 57 of 84 TD subjects, with 27 false negatives and 21 false positives. 
+The first table above shows the confusion matrix of the random forest when we set $n=20$ for the number of proteins to pick up. The Random Forest model achieved strong classification performance with out-of-bag error rates of 35% for ASD and 26.9% for TD subjects. The model correctly identified 59 of 70 ASD subjects and 57 of 84 TD subjects, with 27 false negatives and 21 false positives.
 
 The second Table shows the 20 proteins selected after the random forest. Now we shall move on to selecting 20 proteins from the correlation method. However, we know the study was redacted due to an error in its correlation analysis, which incorrectly used randomly assigned behavioral scores for the control group. Thus, we are not selecting the 20 proteins using the correlation method. We shall move on to selecting proteins from the intersection, doing the logistic regression on each of the proteins not part of the intersection and see which one improve the auc metric and add them to the final panel. Then we will partition the data into training and testing and fit a logistic regression. We will then evaluate it using the test set.
 
@@ -496,13 +492,13 @@ protein_20_results <- test_results %>%
 kable(protein_20_results, caption = "The metric of the logistic regression when the final panel has more proteins.")
 ```
 
-The table above shows the sensitivity of 0.75 and specificity of 0.86 and accuracy of 0.81 and area under the curve of 0.89. Overall this means this is a pretty good model for prediction. The model achieves moderate classification performance on the test set. The model demonstrated higher specificity (0.86) than sensitivity (0.75), indicating that it was better at correctly identifying typically developing (TD) individuals than at detecting those with ASD. The model clearly performs better than when only 9 to 10 proteins were included in the final panel. To be fair, it did not include the correlation method, it still gives promising results. 
+The table above shows the sensitivity of 0.75 and specificity of 0.86 and accuracy of 0.81 and area under the curve of 0.89. Overall this means this is a pretty good model for prediction. The model achieves moderate classification performance on the test set. The model demonstrated higher specificity (0.86) than sensitivity (0.75), indicating that it was better at correctly identifying typically developing (TD) individuals than at detecting those with ASD. The model clearly performs better than when only 9 to 10 proteins were included in the final panel. To be fair, it did not include the correlation method, it still gives promising results.
 
 #### Using a Fuzzy Intersection
 
-The paper used a hard intersection while collecting the proteins that were present in all three methods, t-test, random forest, and correlation and then imposes logistic regression to see which of the remaining proteins improve auc and includes those proteins in the final panel. The question above showed us enough evidence that having more proteins in the panel improved the accuracy of the model. Yes, we did not deploy the correlation method as talked above but it's still worth it to investigate more and see whether we can improve the model. 
+The paper used a hard intersection while collecting the proteins that were present in all three methods, t-test, random forest, and correlation and then imposes logistic regression to see which of the remaining proteins improve auc and includes those proteins in the final panel. The question above showed us enough evidence that having more proteins in the panel improved the accuracy of the model. Yes, we did not deploy the correlation method as talked above but it's still worth it to investigate more and see whether we can improve the model.
 
-One way to think about it by using a fuzzy intersection instead of a hard intersection like the paper did while selecting the proteins. In other words, instead of using hard intersection to combine the set of top proteins across the selection methods, we used a fuzzy intersection based on average rank. We sorted the p-values of the t-test from smallest to largest and the Gini index that was coming from the random forest, from largest to smallest. Each protein was given a rank based on these values. We then averaged these ranks and selected the top 10 proteins with the smallest average rank. This method captures proteins that are consistently strong across both selection methods, even if they don't appear in both top 10 sets. Note, we don't want to be dealing with more than one variable of the test. In the previous section we saw whether adding number of proteins make the model better but it was still using a hard intersection. Now we shall deploy the fuzzy intersection on the original testing and see whether it will improve the model. If it does, then we can see whether combining the fuzzy intersection and adding more proteins in the final panel is warranted or not.  
+One way to think about it by using a fuzzy intersection instead of a hard intersection like the paper did while selecting the proteins. In other words, instead of using hard intersection to combine the set of top proteins across the selection methods, we used a fuzzy intersection based on average rank. We sorted the p-values of the t-test from smallest to largest and the Gini index that was coming from the random forest, from largest to smallest. Each protein was given a rank based on these values. We then averaged these ranks and selected the top 10 proteins with the smallest average rank. This method captures proteins that are consistently strong across both selection methods, even if they don't appear in both top 10 sets. Note, we don't want to be dealing with more than one variable of the test. In the previous section we saw whether adding number of proteins make the model better but it was still using a hard intersection. Now we shall deploy the fuzzy intersection on the original testing and see whether it will improve the model. If it does, then we can see whether combining the fuzzy intersection and adding more proteins in the final panel is warranted or not.
 
 ```{r}
 library(infer)
@@ -742,9 +738,9 @@ We can see here that the AUC went down a little, this is because the model had n
 kable(protein_20_results, caption = "The metric of the logistic regression when the final panel has 20 proteins.")
 ```
 
-The AUC with 20 proteins in the final panel has definitely increased than our benchmark model, but only by 1%. The Sentivity decresed and the specificity inscreased. This is a good model but not that better than the original model. This shows that including rest of the proteins do improve the model but the better question to ask is it worth adding more proteins in the final panel if the model is improved only by 1% in terms of the AUC metric. 
+The AUC with 20 proteins in the final panel has definitely increased than our benchmark model, but only by 1%. The Sentivity decresed and the specificity inscreased. This is a good model but not that better than the original model. This shows that including rest of the proteins do improve the model but the better question to ask is it worth adding more proteins in the final panel if the model is improved only by 1% in terms of the AUC metric.
 
-Now for the fuzzy intersection, the metric table is just above this section. This table is very similar to the one above and it does improve the model but barely. There could be multiple reasons why the fuzzy intersection and adding more proteins just gives the same estimates for the metrics, but again the better question would be to ask is this method worth it for an increase of 1% in the AUC. 
+Now for the fuzzy intersection, the metric table is just above this section. This table is very similar to the one above and it does improve the model but barely. There could be multiple reasons why the fuzzy intersection and adding more proteins just gives the same estimates for the metrics, but again the better question would be to ask is this method worth it for an increase of 1% in the AUC.
 
 ### Improved classifier
 
@@ -871,10 +867,9 @@ ridge_test_results <- tibble(
 kable(ridge_test_results, caption = "Evaluation with an alternative panel fitted using the Ridge Regression", col.names = c("Metric", "Estimator", "Estimate"))
 ```
 
-The table above shows the evaluation after fitting a ridge regressing and finding an alternative panel. The selected proteins from the in-class analysis were: "DERM", "RELT", "Calcineurin", "IgD", "PTN", "FSTL1", "MAPK2", "TGF-b R III", "Notch 1", "ALCAM", and "MATN2".  For the alternative panel we had: "DERM", "RELT", "Calcineurin", "IgD", "PTN", "FSTL1", "MAPK2", "TGF-b R III", "Notch 1", "ALCAM", and "MATN2." Our alternative method of ridge regression yielded a panel of 11 proteins at a classification accuracy of 0.903. Lasso regularization gave us a comparable (within 3.2%) classification accuracy, while the ridge regression gave us a much higher (by 6.4%) classification accuracy. While overall accuracy decreased compared to the in-class analysis, the improved AUROC indicates better ranking of predictions across all possible classification thresholds.
+The table above shows the evaluation after fitting a ridge regressing and finding an alternative panel. The selected proteins from the in-class analysis were: "DERM", "RELT", "Calcineurin", "IgD", "PTN", "FSTL1", "MAPK2", "TGF-b R III", "Notch 1", "ALCAM", and "MATN2". For the alternative panel we had: "DERM", "RELT", "Calcineurin", "IgD", "PTN", "FSTL1", "MAPK2", "TGF-b R III", "Notch 1", "ALCAM", and "MATN2." Our alternative method of ridge regression yielded a panel of 11 proteins at a classification accuracy of 0.903. Lasso regularization gave us a comparable (within 3.2%) classification accuracy, while the ridge regression gave us a much higher (by 6.4%) classification accuracy. While overall accuracy decreased compared to the in-class analysis, the improved AUROC indicates better ranking of predictions across all possible classification thresholds.
 
-Thus, the most selected proteins were the same between our in-class analysis and our ridge regression, but lasso only retained DERM, Calcineurin, IgD, PTN, FSTL1, and MAPK2 from that subset.
-The alternative panel showed a higher accuracy than our in class metric and slightly higher auc. Both regularization approaches demonstrate that effective ASD classification can be achieved with fewer biomarkers than the original 9-protein panel. The LASSO model offers the best balance between simplicity (4 proteins) and performance (comparable accuracy), making it most suitable for clinical translation where assay cost and complexity are important considerations. The Ridge model's superior AUROC suggests it may be preferred when the goal is to rank-order subjects by ASD probability rather than make hard classification decisions.
+Thus, the most selected proteins were the same between our in-class analysis and our ridge regression, but lasso only retained DERM, Calcineurin, IgD, PTN, FSTL1, and MAPK2 from that subset. The alternative panel showed a higher accuracy than our in class metric and slightly higher auc. Both regularization approaches demonstrate that effective ASD classification can be achieved with fewer biomarkers than the original 9-protein panel. The LASSO model offers the best balance between simplicity (4 proteins) and performance (comparable accuracy), making it most suitable for clinical translation where assay cost and complexity are important considerations. The Ridge model's superior AUROC suggests it may be preferred when the goal is to rank-order subjects by ASD probability rather than make hard classification decisions.
 
 ## Conclusion
 
@@ -882,7 +877,7 @@ This analysis successfully replicated the proteomic biomarker discovery approach
 
 First, preprocessing decisions have substantial biological and statistical justification. Log transformation effectively addressed the extreme right-skewness inherent in proteomic data, while outlier trimming proved necessary given that 152 of 154 subjects exhibited at least one extreme value. Importantly, outliers were distributed equally between diagnostic groups, confirming that trimming does not introduce systematic bias.
 
-Second, methodological variations revealed important trade-offs in classifier performance. Expanding feature sets and implementing proper train-test partitioning improved specificity and overall discriminative ability (AUROC) at the cost of reduced sensitivity. This sensitivity-specificity trade-off highlights the importance of clearly defining clinical priorities: whether minimizing false negatives (missing ASD cases) or false positives (over-diagnosing) should guide model optimization. 
+Second, methodological variations revealed important trade-offs in classifier performance. Expanding feature sets and implementing proper train-test partitioning improved specificity and overall discriminative ability (AUROC) at the cost of reduced sensitivity. This sensitivity-specificity trade-off highlights the importance of clearly defining clinical priorities: whether minimizing false negatives (missing ASD cases) or false positives (over-diagnosing) should guide model optimization.
 
 Third, regularization methods successfully identified simpler, clinically viable biomarker panels. LASSO regularization produced a 4-protein panel (DERM, RELT, MRC2, IgD) achieving comparable accuracy (0.806) and strong discriminative ability (AUROC = 0.883) with less than half the features of the original model. Ridge regression yielded a 5-protein panel with the highest AUROC (0.896) among all approaches tested, demonstrating that effective classification can be maintained while reducing panel complexity.
 
@@ -962,7 +957,7 @@ notrim = get(load('../data/biomarker-notrim.RData'))
 
 ```
 
-The above code chunk is included in the report just to show the push of a new dataset in the repository which was done in one of the scripts. We will be loading the notrim dataset directly for the purposes of this report. 
+The above code chunk is included in the report just to show the push of a new dataset in the repository which was done in one of the scripts. We will be loading the notrim dataset directly for the purposes of this report.
 
 ```{r, echo=TRUE, eval=FALSE}
 load("../data/biomarker-notrim.RData")
@@ -1028,6 +1023,7 @@ ggplot(outlier_counts_df, aes(x = n_outliers, fill = group)) +
   scale_fill_manual(values = c("ASD" = "pink", "TD" = "skyblue")) +
   theme_bw()
 ```
+
 ```{r, echo=TRUE, eval=FALSE}
 # Identify extreme outlier subjects
 extreme_outliers <- outlier_counts_df %>%
@@ -1526,4 +1522,3 @@ ridge_test_results <- tibble(
 
 kable(ridge_test_results, caption = "Evaluation with an alternative panel fitted using the Ridge Regression", col.names = c("Metric", "Estimator", "Estimate"))
 ```
-
