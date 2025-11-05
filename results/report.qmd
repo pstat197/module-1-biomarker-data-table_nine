@@ -18,13 +18,13 @@ execute:
 
 ## Abstract
 
-This report evaluates the robustness of proteomic biomarker discovery for autism spectrum disorder (ASD) by replicating and extending the analysis of Hewitson et al. (2021). We examined how preprocessing decisions, outlier handling, and variable selection strategies affect classifier performance using multiple testing, random forest, and logistic regression approaches. Analysis of raw protein distributions revealed extreme right-skewness justifying log transformation. Outlier analysis without trimming showed 152 of 154 subjects had at least one protein exceeding 3 standard deviations, distributed equally between ASD ($n=75$) and TD ($n=77$) groups, though six subjects (4 TD, 2 ASD) exhibited extreme patterns with $\ge 100$ outlying proteins. Methodological variations including train-test splitting and expanded feature sets (20 vs 10 proteins) decreased sensitivity from 0.875 to 0.75 but improved specificity $(0.800 \rightarrow 0.867)$. Using regularization methods, we developed both a simpler 4-protein panel via LASSO and an improved 5-protein panel via Ridge regression, demonstrating that comparable or improved discrimination can be achieved with fewer biomarkers than the original 9-protein panel. These findings underscore the importance of rigorous validation strategies in biomarker discovery pipelines.
+This report evaluates the robustness of proteomic biomarker discovery for autism spectrum disorder (ASD) by replicating and extending the analysis of Hewitson et al. (2021). We examined how preprocessing decisions, outlier handling, and variable selection strategies affect classifier performance using multiple testing, random forest, and logistic regression approaches. Analysis of raw protein distributions revealed extreme right-skewness justifying log transformation. Outlier analysis without trimming showed 152 of 154 subjects had at least one protein exceeding 3 standard deviations, distributed equally between ASD ($n=75$) and TD ($n=77$) groups, though six subjects (4 TD, 2 ASD) exhibited extreme patterns with $\ge 100$ outlying proteins. Methodological variations including train-test splitting and expanded feature sets (20 vs 10 proteins) decreased sensitivity from 0.875 to 0.8125 but improved specificity $(0.800 \rightarrow 0.867)$. Using regularization methods, we developed both a simpler 4-protein panel via LASSO and an improved 5-protein panel via Ridge regression, demonstrating that comparable or improved discrimination can be achieved with fewer biomarkers than the original 9-protein panel. These findings underscore the importance of rigorous validation strategies in biomarker discovery pipelines.
 
 ## Dataset
 
 Data for this analysis were obtained from Hewitson et al. (2021), who conducted a proteomic analysis of serum samples to identify early biological markers for autism spectrum disorder (ASD). The study enrolled 154 male pediatric subjects aged 18 months to 8 years: 76 boys with ASD (mean age 5.6 ± 1.7 years) and 78 typically developing (TD) boys (mean age 5.7 ± 2.0 years) and the serum samples were obtained via a fasting blood draw. All ASD subjects were assessed using the Autism Diagnostic Observation Schedule (ADOS) and Autism Diagnostic Interview-Revised (ADI-R), with ADOS total scores providing a continuous measure of symptom severity. A total of 1,317 proteins were initially measured from each sample, however 192 proteins failed quality control so at the end 1,125 proteins were analyzed.
 
-Initially, the data was normalized by applying the $\log$ transformation. Following this, the data was centered and scaled, this also helped to address the outliers. Any z-transformed values less that $-3$ or greater than $3$ were clipped away. This report evaluates the impact of clipped the outliers by including them and tryin to classify the subjects. This preprocessing ensured the data were standardized before subsequent computational methods were deployed such as the t-test, random forest, and logistic regression.
+Initially, the data was normalized by applying the $\log$ transformation. Following this, the data was centered and scaled, this also helped to address the outliers. Any z-transformed values less that $-3$ or greater than $3$ were clipped away. This report evaluates the impact of clipped the outliers by including them and trying to classify the subjects. This preprocessing ensured the data were standardized before subsequent computational methods were deployed such as the t-test, random forest, and logistic regression.
 
 ## Summary of published analysis
 
@@ -71,7 +71,7 @@ flowchart TD
 
 ## Findings
 
-In this section we will be justifying the preprocessing steps, impact of outliers, and carry a few experiments to see whether we can improve the model accuracy. 
+In this section we will be justifying the preprocessing steps, impact of outliers, and carry a few experiments to see whether we can improve the model accuracy.
 
 ### Justifying Preprocessing
 
@@ -161,6 +161,7 @@ outlier_counts_df <- data.frame(
     notrim_with_id %>% select(subject_id, group),
     by = "subject_id"
   )
+
 
 # Summary statistics by group
 outlier_summary <- outlier_counts_df %>%
@@ -289,7 +290,7 @@ rf_out_confusion <- as.data.frame(rf_out$confusion)
 kable(rf_out_confusion, caption = "Confusion matrix for the random forest")
 ```
 
-The table above is a confusion matrix from the random forest. The Random Forest model achieved strong classification performance with out-of-bag error rates of 35% for ASD and 25.8% for TD subjects. The model correctly identified 29 of 55 ASD subjects and 21 of 67 TD subjects, with 21 false negatives and 16 false positives.
+The table above is a confusion matrix from the random forest. The Random Forest model achieved strong classification performance with out-of-bag error rates of 35% for ASD and 25.8% for TD subjects. The model correctly identified 39 of 55 ASD subjects and 46 of 67 TD subjects, with 16 false positives and 21 false negatives.
 
 Now we can move on to computing the importance score and performing the final logistic regression and evaluating the models on the test set. Then we can get the predictions and evaluate the model on the test set.
 
@@ -440,9 +441,49 @@ kable(proteins_s2_df, caption = "20 selected proteins after performing random fo
       col.names = c("Proteins"))
 ```
 
-The first table above shows the confusion matrix of the random forest when we set $n=20$ for the number of proteins to pick up. The Random Forest model achieved strong classification performance with out-of-bag error rates of 35% for ASD and 26.9% for TD subjects. The model correctly identified 59 of 70 ASD subjects and 57 of 84 TD subjects, with 27 false negatives and 21 false positives.
+The first table above shows the confusion matrix of the random forest when we set $n=20$ for the number of proteins to pick up. The Random Forest model achieved strong classification performance with out-of-bag error rates of 36.8% for ASD and 21.7% for TD subjects. The model correctly identified 48 of 65 ASD subjects and 61 of 89 TD subjects, with 17 false positives and 28 false negatives.
 
-The second Table shows the 20 proteins selected after the random forest. Now we shall move on to selecting 20 proteins from the correlation method. However, we know the study was redacted due to an error in its correlation analysis, which incorrectly used randomly assigned behavioral scores for the control group. Thus, we are not selecting the 20 proteins using the correlation method. We shall move on to selecting proteins from the intersection, doing the logistic regression on each of the proteins not part of the intersection and see which one improve the auc metric and add them to the final panel. Then we will partition the data into training and testing and fit a logistic regression. We will then evaluate it using the test set.
+The second Table shows the 20 proteins selected after the random forest. Now we shall move on to selecting 20 proteins from the correlation method.
+
+```{r}
+## CORRELATION ANALYSIS
+#######################
+cor_test <- function(x, y){
+  cor_out <- cor.test(x, y)
+  tibble(estimate = cor_out$estimate,
+         p.value = cor_out$p.value)}
+
+asd_clean = biomarker_clean %>% 
+  subset(group == "ASD")
+
+
+# compute correlations
+
+asd_clean = asd_clean %>% 
+ pivot_longer(cols = -c(group,ados),
+          names_to = 'protein',
+             values_to = 'level') %>%
+  group_by(protein) %>%
+  summarize(correlation = cor_test(ados, level)) %>%
+  unnest(correlation) %>%
+  mutate(abs_correlation = abs(estimate)) %>% 
+  arrange(p.value)
+
+proteins_s3_df = as.data.frame(head(asd_clean, 20))
+
+
+kable(proteins_s3_df$protein, caption = "20 proteins selected after Correlation Analysis",
+      col.names = c("Proteins"))
+
+
+# asd_clean is a subset of the data with only ASD subjects and data cleaned (outliers)
+
+
+```
+
+The issue with the 20 proteins chosen from the Correlation Analysis is that they have 0 intersection with any of the proteins from the Multiple T-Tests and Random Forest methods. This causes the logistic regression of the intersection of all 3 sets of proteins to have undefined specificity and sensitivity. As a result, the proteins chosen from the Correlation Analysis method will not be included in the hard intersection for logistic regression.
+
+We shall move on to selecting proteins from the intersection, doing the logistic regression on each of the proteins not part of the intersection and see which one improve the auc metric and add them to the final panel. Then we will partition the data into training and testing and fit a logistic regression. We will then evaluate it using the test set.
 
 ```{r}
 ## LOGISTIC REGRESSION
@@ -479,7 +520,7 @@ class_metrics <- metric_set(sensitivity,
 test_results = biomarker_test %>%
   add_predictions(fit, type = 'response') %>% 
   mutate(class = factor(class, labels = c("TD", "ASD")),
-         pred.group = factor(pred > 0.5, labels = c("TD", "ASD")))
+                        pred.group = factor(pred > 0.5, labels = c("TD", "ASD")))
 
 protein_20_results <- test_results %>% 
   class_metrics(
@@ -490,9 +531,11 @@ protein_20_results <- test_results %>%
   )
 
 kable(protein_20_results, caption = "The metric of the logistic regression when the final panel has more proteins.")
+
+
 ```
 
-The table above shows the sensitivity of 0.75 and specificity of 0.86 and accuracy of 0.81 and area under the curve of 0.89. Overall this means this is a pretty good model for prediction. The model achieves moderate classification performance on the test set. The model demonstrated higher specificity (0.86) than sensitivity (0.75), indicating that it was better at correctly identifying typically developing (TD) individuals than at detecting those with ASD. The model clearly performs better than when only 9 to 10 proteins were included in the final panel. To be fair, it did not include the correlation method, it still gives promising results.
+The table above shows the sensitivity of 0.8125, specificity of 0.86, accuracy of 0.838 and area under the curve of 0.945. Overall this means this is a pretty good model for prediction. The model achieves moderate classification performance on the test set. The model demonstrated higher specificity (0.86) than sensitivity (0.8125), indicating that it was better at correctly identifying typically developing (TD) individuals than at detecting those with ASD. The model clearly performs better than when only 9 to 10 proteins were included in the final panel. To be fair, it did not include the correlation method, it still gives promising results.
 
 #### Using a Fuzzy Intersection
 
@@ -597,7 +640,111 @@ fuzzy_results <- testing(biomarker_split) %>%
 kable(fuzzy_results, caption = "Metrics on the test dataset after deploying a fuzzy intersection instead of a hard intersection", col.names = c("Metric", "Estimator", "Estimate"))
 ```
 
-When using the fuzzy intersection method compared to a hard intersection, the sensitivity decreased from 0.812 to 0.75, the specificity increased from 0.733 to 0.867, the accuracy value increased from 0.774 to 0.806, and the roc_auc value increased slightly from 0.883 to 0.892. Because the positive class corresponds to ASD, this means the fuzzy intersection made the model slightly worse at correctly identifying individuals with ASD (lower sensitivity), but better at correctly identifying typically developing (TD) individuals (higher specificity). Despite the drop in sensitivity, the overall accuracy and ROC AUC improved, suggesting that including proteins that were highly ranked by at least one selection method rather than both helped the model generalize slightly better and improved its ability to discriminate between ASD and TD overall.
+When using the fuzzy intersection method compared to a hard intersection, the sensitivity increased from 0.812 to 0.875, the specificity remained the same, the accuracy value increased from 0.838 to 0.8709, and the roc_auc value increased slightly from 0.945 to 0.962. Because the positive class corresponds to ASD, this means the fuzzy intersection made the model better at correctly identifying individuals with ASD (higher sensitivity) & better at correctly identifying typically developing (TD) individuals (higher specificity). Additionally, the overall accuracy and ROC AUC improved, suggesting that including proteins that were highly ranked by at least one selection method rather than both helped the model generalize slightly better and improved its ability to discriminate between ASD and TD overall.
+
+Because the fuzzy intersection does not require the proteins to be in the top 10, the fuzzy intersection method can include the Correlation Analysis method and get non NA values for all metrics.
+
+```{r}
+
+## MULTIPLE TESTING
+####################
+test_fn <- function(.df) {
+  t_test(.df,
+         formula = level ~ group,
+         order = c('ASD', 'TD'),
+         alternative = 'two-sided',
+         var.equal = FALSE)
+}
+
+ttests_out <- biomarker_clean %>%
+  select(-ados) %>%
+  pivot_longer(-group, names_to = 'protein', values_to = 'level') %>%
+  nest(data = c(level, group)) %>% 
+  mutate(ttest = map(data, test_fn)) %>%
+  unnest(ttest) %>%
+  arrange(p_value) %>%
+  mutate(m = n(),
+         hm = log(m) + 1/(2*m) - digamma(1),
+         rank = row_number(),
+         p.adj = m * hm * p_value / rank)
+
+## RANDOM FOREST
+##################
+predictors <- biomarker_clean %>% select(-c(group, ados))
+response <- biomarker_clean %>% pull(group) %>% factor()
+
+set.seed(101422)
+rf_out <- randomForest(x = predictors,
+                       y = response,
+                       ntree = 1000,
+                       importance = TRUE)
+
+## FUZZY INTERSECTION (replaces hard intersect)
+###############################################
+
+# Rank proteins by t-test (smallest p-value = best)
+ranked_ttest <- ttests_out %>%
+  select(protein, p_value) %>%
+  mutate(rank_t = rank(p_value, ties.method = "average"))
+
+# Rank proteins by Random Forest importance (largest Gini = best)
+ranked_rf <- rf_out$importance %>%
+  as_tibble(rownames = "protein") %>%
+  select(protein, MeanDecreaseGini) %>%
+  mutate(rank_rf = rank(-MeanDecreaseGini, ties.method = "average"))
+
+# Rank Proteins by Correlation Score (largest Correlation = best)
+ranked_cor <- asd_clean %>% 
+  select(protein, abs_correlation) %>% 
+  mutate(rank_cor = rank(abs_correlation, ties.method = "average"))
+
+# Combine rankings and compute average rank
+combined_ranks <- full_join(ranked_ttest, ranked_rf, by = "protein") %>%
+  full_join(ranked_cor, by = "protein") %>% 
+  mutate(avg_rank = (rank_t + rank_rf + rank_cor) / 3) %>%
+  arrange(avg_rank)
+
+# Select top proteins based on average rank (fuzzy intersection)
+proteins_sstar <- combined_ranks %>%
+  slice_min(avg_rank, n = 10) %>%
+  pull(protein)
+
+## LOGISTIC REGRESSION
+#######################
+biomarker_sstar <- biomarker_clean %>%
+  select(group, any_of(proteins_sstar)) %>%
+  mutate(class = (group == 'ASD')) %>%
+  select(-group)
+
+set.seed(101422)
+biomarker_split <- biomarker_sstar %>%
+  initial_split(prop = 0.8)
+
+fit <- glm(class ~ ., 
+           data = training(biomarker_split),
+           family = 'binomial')
+
+class_metrics <- metric_set(sensitivity, specificity, accuracy, roc_auc)
+
+fuzzy_results <- testing(biomarker_split) %>%
+  add_predictions(fit, type = 'response') %>%
+  mutate(
+    pred_class = factor(pred > 0.5, levels = c(FALSE, TRUE)),
+    truth = factor(class, levels = c(FALSE, TRUE))
+  ) %>%
+  class_metrics(
+    estimate = pred_class,
+    truth = truth,
+    pred,
+    event_level = "second"
+  )
+
+kable(fuzzy_results, caption = "Metrics on the test dataset after deploying a fuzzy intersection instead of a hard intersection", col.names = c("Metric", "Estimator", "Estimate"))
+
+
+```
+
+Compared to the fuzzy intersection with only the Random Forest and Multiple T-Testing methods included, the sensitivity dropped from 0.875 to 0.5625, the specificity remained the same, the accuracy dropped from 0.8709 to 0.709, and the roc_auc score dropped from 0.9625 to 0.754. These results suggest that the proteins from the Correlation Analysis method worsened the model's overall accuracy & its detection of true ASD cases, while maintaining its detection of true TD cases.
 
 #### Improved Results and Comparisons
 
@@ -725,7 +872,7 @@ inclass_results <- test_results %>%
 kable(inclass_results, caption = "These are the results of the in class analysis which will be our benchmark along with the original published results.", col.names = c("Metric", "Estimator", "Estimate"))
 ```
 
-Below is the dataframe for when we set the training and testing data after partitioning it as a 80-20 split. This is teh first methodology experiment we implemented.
+Below is the dataframe for when we set the training and testing data after partitioning it as a 80-20 split. This is the first methodology experiment we implemented.
 
 ```{r}
 kable(results, caption = "Evaluation of the test dataset.",
@@ -738,7 +885,7 @@ We can see here that the AUC went down a little, this is because the model had n
 kable(protein_20_results, caption = "The metric of the logistic regression when the final panel has 20 proteins.")
 ```
 
-The AUC with 20 proteins in the final panel has definitely increased than our benchmark model, but only by 1%. The Sentivity decresed and the specificity inscreased. This is a good model but not that better than the original model. This shows that including rest of the proteins do improve the model but the better question to ask is it worth adding more proteins in the final panel if the model is improved only by 1% in terms of the AUC metric.
+The AUC with 20 proteins in the final panel has definitely increased than our benchmark model, but only by 1%. The sensitivity decreased and the specificity increased. This is a good model but not much better than the original model. This shows that including rest of the proteins do improve the model but the better question to ask is it worth adding more proteins in the final panel if the model is improved only by 1% in terms of the AUC metric.
 
 Now for the fuzzy intersection, the metric table is just above this section. This table is very similar to the one above and it does improve the model but barely. There could be multiple reasons why the fuzzy intersection and adding more proteins just gives the same estimates for the metrics, but again the better question would be to ask is this method worth it for an increase of 1% in the AUC.
 
@@ -806,7 +953,7 @@ kable(lasso_test_results, caption = "Lasso model with Simpler Panel Evaluation",
       col.names = c("Metric", "Estimator", "Estimate"))
 ```
 
-The first table shows the lasso coefficients for the proteins, this is a much simpler model compared to the random forest and still has some hyperparameters involved. This gives us four proteins with the coefficients which are then used to make the predictions. The next table is very similar to the inclass table for evaluation of the model. While accuracy was slightly lower than the in-class logistic regression (0.806 vs 0.839), the LASSO model achieved comparable discriminative ability with less than half the number of proteins, offering a more clinically practical solution. Now we try an alternative panel that hopefully achieves an improved classification accuracy. To do so we fit a ridge regression with cross validation.
+The first table shows the lasso coefficients for the proteins, this is a much simpler model compared to the random forest and still has some hyperparameters involved. This gives us four proteins with the coefficients which are then used to make the predictions. The next table is very similar to the in class table for evaluation of the model. While accuracy was slightly lower than the in-class logistic regression (0.806 vs 0.839), the LASSO model achieved comparable discriminative ability with less than half the number of proteins, offering a more clinically practical solution. Now we try an alternative panel that hopefully achieves an improved classification accuracy. To do so we fit a ridge regression with cross validation.
 
 ```{r}
 # Alternative Panel using Ridge Regression for Higher Accuracy
@@ -1243,6 +1390,38 @@ proteins_s2 <- rf_out$importance %>%
 
 proteins_s2
 
+## CORRELATION ANALYSIS
+#######################
+cor_test <- function(x, y){
+  cor_out <- cor.test(x, y)
+  tibble(estimate = cor_out$estimate,
+         p.value = cor_out$p.value)}
+
+asd_clean = biomarker_clean %>% 
+  subset(group == "ASD")
+
+
+# compute correlations
+
+asd_clean = asd_clean %>% 
+ pivot_longer(cols = -c(group,ados),
+          names_to = 'protein',
+             values_to = 'level') %>%
+  group_by(protein) %>%
+  summarize(correlation = cor_test(ados, level)) %>%
+  unnest(correlation) %>%
+  mutate(abs_correlation = abs(estimate)) %>% 
+  arrange(p.value)
+
+proteins_s3_df = as.data.frame(head(asd_clean, 20))
+
+
+kable(proteins_s3_df$protein, caption = "20 proteins selected after Correlation Analysis",
+      col.names = c("Proteins"))
+
+# Proteins from the Correlation Analysis Method were not included in the hard
+# intersection due to not being present in the other two methods.
+
 ## LOGISTIC REGRESSION
 #######################
 
@@ -1385,6 +1564,105 @@ fuzzy_results <- testing(biomarker_split) %>%
   )
 
 kable(fuzzy_results, caption = "Metrics on the test dataset after deploying a fuzzy intersection instead of a hard intersection", col.names = c("Metric", "Estimator", "Estimate"))
+```
+
+```{r, echo=TRUE, eval=FALSE}
+
+## MULTIPLE TESTING
+####################
+test_fn <- function(.df) {
+  t_test(.df,
+         formula = level ~ group,
+         order = c('ASD', 'TD'),
+         alternative = 'two-sided',
+         var.equal = FALSE)
+}
+
+ttests_out <- biomarker_clean %>%
+  select(-ados) %>%
+  pivot_longer(-group, names_to = 'protein', values_to = 'level') %>%
+  nest(data = c(level, group)) %>% 
+  mutate(ttest = map(data, test_fn)) %>%
+  unnest(ttest) %>%
+  arrange(p_value) %>%
+  mutate(m = n(),
+         hm = log(m) + 1/(2*m) - digamma(1),
+         rank = row_number(),
+         p.adj = m * hm * p_value / rank)
+
+## RANDOM FOREST
+##################
+predictors <- biomarker_clean %>% select(-c(group, ados))
+response <- biomarker_clean %>% pull(group) %>% factor()
+
+set.seed(101422)
+rf_out <- randomForest(x = predictors,
+                       y = response,
+                       ntree = 1000,
+                       importance = TRUE)
+
+## FUZZY INTERSECTION (replaces hard intersect)
+###############################################
+
+# Rank proteins by t-test (smallest p-value = best)
+ranked_ttest <- ttests_out %>%
+  select(protein, p_value) %>%
+  mutate(rank_t = rank(p_value, ties.method = "average"))
+
+# Rank proteins by Random Forest importance (largest Gini = best)
+ranked_rf <- rf_out$importance %>%
+  as_tibble(rownames = "protein") %>%
+  select(protein, MeanDecreaseGini) %>%
+  mutate(rank_rf = rank(-MeanDecreaseGini, ties.method = "average"))
+
+# Rank Proteins by Correlation Score (largest Correlation = best)
+ranked_cor <- asd_clean %>% 
+  select(protein, abs_correlation) %>% 
+  mutate(rank_cor = rank(abs_correlation, ties.method = "average"))
+
+# Combine rankings and compute average rank
+combined_ranks <- full_join(ranked_ttest, ranked_rf, by = "protein") %>%
+  full_join(ranked_cor, by = "protein") %>% 
+  mutate(avg_rank = (rank_t + rank_rf + rank_cor) / 3) %>%
+  arrange(avg_rank)
+
+# Select top proteins based on average rank (fuzzy intersection)
+proteins_sstar <- combined_ranks %>%
+  slice_min(avg_rank, n = 10) %>%
+  pull(protein)
+
+## LOGISTIC REGRESSION
+#######################
+biomarker_sstar <- biomarker_clean %>%
+  select(group, any_of(proteins_sstar)) %>%
+  mutate(class = (group == 'ASD')) %>%
+  select(-group)
+
+set.seed(101422)
+biomarker_split <- biomarker_sstar %>%
+  initial_split(prop = 0.8)
+
+fit <- glm(class ~ ., 
+           data = training(biomarker_split),
+           family = 'binomial')
+
+class_metrics <- metric_set(sensitivity, specificity, accuracy, roc_auc)
+
+fuzzy_results <- testing(biomarker_split) %>%
+  add_predictions(fit, type = 'response') %>%
+  mutate(
+    pred_class = factor(pred > 0.5, levels = c(FALSE, TRUE)),
+    truth = factor(class, levels = c(FALSE, TRUE))
+  ) %>%
+  class_metrics(
+    estimate = pred_class,
+    truth = truth,
+    pred,
+    event_level = "second"
+  )
+
+kable(fuzzy_results, caption = "Metrics on the test dataset after deploying a fuzzy intersection instead of a hard intersection", col.names = c("Metric", "Estimator", "Estimate"))
+
 ```
 
 #### Improved Results Comparisons
